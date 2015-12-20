@@ -1,0 +1,21 @@
+div.salamanca {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height:300px;
+  display:none;
+}
+
+div.salamanca.active {
+  display:block;
+}
+
+div.salamanca .keyboard {
+  position: fixed;
+  height: 300px; /* manually set to same as div.salamanca */
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #000;
+  opacity:0.8;
+}

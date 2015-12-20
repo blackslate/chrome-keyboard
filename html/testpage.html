@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+</head>
+<body>
+<h1>Test page</h1>
+<input id="top" type="text" name="input1" value="" placeholder="top of page">
+<p id="active"></p>
+<textarea id="area"></textarea>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris venenatis magna at diam hendrerit rhoncus. Maecenas varius maximus dui eu consectetur. Ut pellentesque faucibus elit, eu ultricies justo tempor nec. Duis sit amet dui justo. Sed id scelerisque arcu, ac dapibus diam. Phasellus purus neque, elementum a neque et, ullamcorper dapibus est. Quisque at efficitur velit, in bibendum erat. Nunc ac ipsum vitae tellus egestas varius. Morbi nec nisl aliquam lacus gravida scelerisque. Etiam nec nulla sed massa malesuada pellentesque at nec magna. Proin malesuada ipsum massa, ullamcorper laoreet eros lobortis quis. Quisque eget semper elit, et accumsan eros.</p>
+<p>
+Donec accumsan velit ut risus cursus, a pretium justo dignissim. Praesent accumsan neque eget ante sodales feugiat. Suspendisse potenti. Fusce ut pulvinar enim. In odio mauris, rhoncus vitae libero in, hendrerit commodo dui. Proin consectetur gravida ex id dapibus. Suspendisse ut arcu interdum lorem euismod malesuada eu ac turpis. Donec quis libero ante. Suspendisse faucibus pharetra dapibus. Aliquam eget nulla et arcu rhoncus feugiat. Donec ex eros, dignissim nec semper vehicula, euismod eu ante. Nunc mi risus, facilisis posuere ante a, sollicitudin ultricies nisi. Sed fermentum, mi in rutrum vulputate, arcu felis pellentesque massa, sit amet euismod nisl leo sed erat. Nulla mattis, nisi iaculis luctus lobortis, mi risus congue ante, eget fringilla lacus dolor id dolor. In eu orci dictum tellus elementum commodo sed sed ligula. Nam consectetur, lacus sit amet vestibulum commodo, ante massa egestas elit, laoreet lacinia velit nisi id ligula.</p>
+<p>
+Nullam euismod consectetur felis vel gravida. Donec non rutrum purus. Donec et sollicitudin ante, sit amet bibendum justo. Suspendisse potenti. Aenean ut neque eget lectus volutpat lobortis vitae nec ante. Sed eget ultrices tellus, non rutrum mi. Maecenas eu dictum est, malesuada lacinia mi. Suspendisse vestibulum quam nisi, feugiat imperdiet eros ornare id. Aliquam in varius augue. Sed condimentum blandit felis tempor auctor.</p>
+<p>
+Pellentesque in rhoncus massa. Sed facilisis lectus magna, ac finibus nibh lobortis a. Donec sed feugiat urna. Praesent semper fringilla erat. Nulla facilisi. Cras vel neque placerat, interdum arcu et, posuere erat. Etiam congue et mauris sit amet tincidunt. Donec semper id enim eget vulputate. Maecenas sed augue enim. Maecenas ut placerat eros. Aliquam convallis purus eget libero interdum, nec vulputate felis ultricies. Sed semper est vel pellentesque dignissim. Quisque non metus aliquet, dignissim nisl non, laoreet eros. Vestibulum interdum augue et sapien sodales tincidunt in eget odio. Proin odio quam, venenatis vel tortor nec, placerat rutrum dui.</p>
+<p>
+Proin sed nisi sit amet dolor rhoncus posuere eget at enim. Pellentesque et arcu ac nulla dapibus tristique. Integer placerat, eros vel hendrerit malesuada, enim leo fringilla velit, id eleifend nibh massa volutpat leo. Integer semper tellus tortor, a rhoncus mauris posuere quis. Pellentesque aliquet pharetra pulvinar. Phasellus gravida arcu nec nibh dictum, sed ornare felis euismod. Donec nisl orci, fringilla at congue vitae, fringilla vel ante. Aliquam venenatis cursus lacinia. Suspendisse placerat egestas mauris. Nam vitae lorem diam. Suspendisse potenti. Curabitur pellentesque turpis ligula, id sollicitudin est pulvinar in. Praesent aliquam est sit amet urna laoreet lobortis vitae id eros. Quisque vel cursus purus. Ut congue justo vitae fermentum rutrum. Ut convallis faucibus justo, eu placerat nisl iaculis suscipit.
+</p>
+<input id="foot" type="text" name="input2" value="" placeholder="foot of page">
+<script>
+;(function () {
+  var active = document.querySelector("#active")
+
+  ;(function checkActive() {
+    var type = document.activeElement.nodeName
+    active.innerHTML = type
+    setTimeout(checkActive, 100)
+  })()
+})()
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "name": {
+    "message": "Panneau Salamanca"
+  , "description": "nom de l'extension"
+  }
+, "description": {
+    "message": "Clavier virtuel pour accès limité"
+  , "description": "déscription de l'extension"
+  }
+, "default_title": {
+    "message": "Salamanca"
+  , "description": "titre par defaut"
+  }
+, "short_name": {
+    "message": "Salamanca"
+  , "description": "nom court"
+  }
+, "version_name": {
+    "message": "alpha"
+  , "description": "nom de cette version"
+  }
+}

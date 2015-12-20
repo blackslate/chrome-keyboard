@@ -1,0 +1,22 @@
+{
+  "name": {
+    "message": "ไทย Salamanca Board"
+  , "description": "extension name"
+  }
+, "description": {
+    "message": "ไทย Virtual Keyboard for one-touch access"
+  , "description": "extension description"
+  }
+, "default_title": {
+    "message": "ไทย Salamanca"
+  , "description": "default title"
+  }
+, "short_name": {
+    "message": "ไทย Salamanca"
+  , "description": "short name"
+  }
+, "version_name": {
+    "message": "alpha"
+  , "description": "version name"
+  }
+}

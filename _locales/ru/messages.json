@@ -1,0 +1,22 @@
+{
+  "name": {
+    "message": "Русский Salamanca Board"
+  , "description": "extension name"
+  }
+, "description": {
+    "message": "Русский Virtual Keyboard for one-touch access"
+  , "description": "extension description"
+  }
+, "default_title": {
+    "message": "Русский Salamanca"
+  , "description": "default title"
+  }
+, "short_name": {
+    "message": "Русский Salamanca"
+  , "description": "short name"
+  }
+, "version_name": {
+    "message": "alpha"
+  , "description": "version name"
+  }
+}

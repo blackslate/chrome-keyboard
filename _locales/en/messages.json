@@ -1,0 +1,22 @@
+{
+  "name": {
+    "message": "Salamanca Board"
+  , "description": "extension name"
+  }
+, "description": {
+    "message": "Virtual Keyboard for one-touch access"
+  , "description": "extension description"
+  }
+, "default_title": {
+    "message": "Salamanca"
+  , "description": "default title"
+  }
+, "short_name": {
+    "message": "Salamanca"
+  , "description": "short name"
+  }
+, "version_name": {
+    "message": "alpha"
+  , "description": "version name"
+  }
+}
