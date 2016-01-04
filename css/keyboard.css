@@ -3,6 +3,7 @@ div.salamanca {
   right: 0;
   bottom: 0;
   height:300px;
+  color: #fff;
   display:none;
 }
 
@@ -18,4 +19,21 @@ div.salamanca .keyboard {
   bottom: 0;
   background-color: #000;
   opacity:0.8;
+}
+
+.salamanca p {
+  margin: 0;
+  padding: 0;
+}
+
+.salamanca span {
+  width: 16.3vw;
+  line-height: 56px;
+  text-align: center;
+  font-size: 60px;
+  border: 1px solid #fff;
+  display: inline-block;
+  overflow: hidden;
+  margin:0;
+  padding:0;
 }
