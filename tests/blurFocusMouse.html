@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang=en>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+</head>
+<body>
+<h1></h1>
+<p>
+  
+</p>
+</body>
+<script>
+;(function () {
+  window.addEventListener("focus", check, true)
+  window.addEventListener("blur", check, true)
+  window.addEventListener("mouseup", check, false)
+
+  function check(event) {
+    console.log(event.type)
+  }
+})()
+</script>
+</html>

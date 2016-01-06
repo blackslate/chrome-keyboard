@@ -5,7 +5,8 @@
   ;(function injectHTMLandCSS(){
     // Ensure that the stylesheet for the keyboard is available
     var link = document.createElement("link");
-    link.href = chrome.extension.getURL("css/keyboard.css");
+    //link.href = chrome.extension.getURL("css/keyboard.css");
+    link.href = "../css/keyboard.css"
     link.type = "text/css";
     link.rel = "stylesheet";
     document.getElementsByTagName("head")[0].appendChild(link);
@@ -14,7 +15,8 @@
     // Add keyboard.html to page    
     var url = "/html/keyboard.html"
     var xhr = new XMLHttpRequest()
-    xhr.open("GET", chrome.extension.getURL(url), true)
+    //xhr.open("GET", chrome.extension.getURL(url), true)
+    xhr.open("GET", "keyboard.html", true)
     xhr.onreadystatechange = loadKeyboard
     xhr.send()
 
@@ -34,7 +36,7 @@
     function startInputDetection() {
       window.addEventListener("focus", checkForInput, true)
       window.addEventListener("blur", checkForInput, true)
-      window.addEventListener("mouseup", oneTouch, false)
+      window.addEventListener("mousedown", oneTouch, false)
 
       var timeout
 
@@ -42,10 +44,6 @@
         var eventType = event.type
         var activeElement = document.activeElement
         var type = activeElement.nodeName.toLowerCase()
-
-        if (parentIsKeyboard(event.target)) {
-          return
-        }
 
         switch (type) {
           case "input":
@@ -86,20 +84,26 @@
     }
   })()
 
-  function parentIsKeyboard(element) {
-    while (element = element.parent) {
+  function notChildOfKeyboard(element) {
+    while (element = element.parentNode) {
       if (element === keyboardDiv) {
-        return true
+        return false
       }
     }
 
-    return false
+    return true
   }
 
   function oneTouch(event) {
+    if (notChildOfKeyboard(event.target)) {
+      return
+    }
+
     if (keyboardDiv.classList.contains("active")) {
       event.preventDefault()
-      
+ 
+
+      console.log(event)     
     }
   }
 })()

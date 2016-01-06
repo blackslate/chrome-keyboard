@@ -1,0 +1,75 @@
+.k-container {
+  font-size: 2.5vw;
+  position: relative;
+  background-color: #eff;
+}
+
+.k-container div,
+.k-container p,
+.k-container span,
+.k-container textarea {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.k-keyboard span{
+  display:inline-block;
+  width: 2em;
+  height: 2em;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-right: 1px solid #666;
+  border-bottom: 1px solid #666;
+  line-height: 2em;
+}
+.k-keyboard span:nth-child(odd){
+  background-color: #ffe; 
+}
+.k-keyboard span:nth-child(even){
+  background-color: #eef; 
+}
+.k-keyboard span.k-alternative{
+  width: 3.333em;
+  background-color: #fef;
+}
+.k-container .k-preview,
+.k-container .k-binary,
+.k-container textarea { 
+  position: absolute;
+ 
+}
+.k-container .k-preview {
+  left: 12em;
+  top: 4em;
+  width: 6em;
+  height: 6em;
+  background-color: #efe;
+} 
+.k-container .k-preview span {
+  width: 100%;
+  height: 100%;
+  background-color: #efe;
+  font-size: 6em;
+  line-height: 1em;
+}
+.k-container .k-binary {
+  width: 5vw;
+  top: 0;
+  left: 45vw;
+  height: 25vw;
+  text-align: center;
+  background-color: #fed;
+}
+.k-container .k-binary span {
+  padding-top: 1vw;
+  font-size: 12vw;
+  line-height: 3vw;
+  display: block;
+}
+.k-container textarea {
+  width: calc(100% - 50vw);
+  top: 0;
+  left: 50vw;
+  height: 25vw;
+  background-color: #edf;
+}

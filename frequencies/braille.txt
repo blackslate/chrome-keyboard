@@ -1,0 +1,14 @@
+abcdefg    b   fg             . cd fg   .  de g   .
+h  klmn   hij l        klmn    ij  mn   h j   n   
+opqr  u    pqrst    opqrstu    pq st    o qr t    
+v xyz     vw        v xyz      wxy       w yz     vwxyz
+
+abcdefg    b   fg             . cd fg   .  de g   .
+h  klmn   hij l        klmn    ij  mn   h j   n   
+opqr  u    pqrst    opqrstu    pq st    o qr t    
+v xyz     vw        v xyz      wxy       w yz     vwxyz
+
+                              . cd fg   .  de g   .
+                       klmn    ij  mn   h j   n   
+              st    opqrstu    pq st    o qr t    
+           w        v xyz      wxy       w yz     vwxyz
