@@ -30,23 +30,23 @@ Letter Frequency
  Unused for letters
 
           ***** 31 -edit
-          **..* 25 -favourites
+          **..* 25 -TAB
           **.*. 26 -numbers
           **.** 27 -punctuation
-          ***.. 28 -settings
+          ***.. 28 -more
           ..... space (two spaces = .)
 
-
-
 1. Edit
-2. Punctuation 
-   ,;:? !'"-
-   —()¶ |^«»
-   *—
-3. Numbers, mathematics & currency
+2. SPACE
+3. TAB
+4. Numbers, mathematics & currency
    0123 4567
-   89+- /=<>
-   []{} @&$¢
+   89+- /=*~
+   |`<> $¢£€
    %#
-4. Favourites
-5. Accented and special characters => alternative keyboards
+5. Punctuation 
+   ,;:? !'"^
+   ()[] {}«»
+   -—_* /\@&
+   ¶¬
+6. More

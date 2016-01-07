@@ -29,19 +29,6 @@ scannedKeys = [
   ]
 ]
 
-keyFilters[layoutName] = {
-  on: [
-    [<element>, ...] // bit 0
-  , [<element>, ...]
-  , [<element>, ...]
-  , [<element>, ...]
-  , [<element>, ...] // bit 4
-  ]
-, off: [
-
-  ]
-}
-
 First pass:
 - iterate through row and key of scannedKeys to get the element
 - get the num from the same place in layout
@@ -63,3 +50,19 @@ Second pass:
       - otherwise, className = ""
     - if not, className = "disabled"
 - update preview
+
+TAB
+===
+A disabled user must use TAB to move focus. The TAB character should be readily accessible.
+
+Input
+=====
+If user physically clicks on the textarea, it should accept direct key input. If the textarea has focus but did not get it from a click, then all key input should be considered as switch actions.
+
+If an able user clicks on the textarea, a disabled user can no longer use switch scanning. If the user clicks anywhere but on the textarea, the textarea should revert to scanning.
+
+Keydown
+=======
+A keydown action anywhere in the document will trigger a function. If the field with the current focus was clicked, the action will be allowed through to the field. If not, the action will be sent to the virtual keyboard.
+
+A focus event is fired only if focus changes. A mousedown event fires at each click. If an able user clicks on the currently focused element, then userIsAble should remain true.

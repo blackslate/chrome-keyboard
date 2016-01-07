@@ -1,5 +1,8 @@
+"use strict"
 
-;(function initialize(){
+;(function keyboard(window, document){
+  var FOCUS_DELAY = 10
+  var userIsAble = false
   var keyboard = {
     layouts: {
       alphabet: [
@@ -9,8 +12,8 @@
         , {name: "c", num:  6}
         , {name: "d", num: 10}
         , {name: "#edit", num: 31}
-        , {name: "&nbsp", num:  0}
-        , {name: "#favourites", num: 25} // **..*•
+        , {name: "#space", num: 0}
+        , {name: "#tab", num: 25} // **..*•
         ]
       , [
           {name: "e", num: 16}
@@ -19,7 +22,7 @@
         , {name: "h", num: 12}
         , {name: "#numbers", num: 26}
         , {name: "#punctuation", num: 27}
-        , {name: "#settings", num: 28}
+        , {name: "#more", num: 28}
         ]
       , [
           {name: "i", num: 17}
@@ -50,21 +53,90 @@
   , icons: {
       alphabet: "ABC"
     , edit: "Edit"
+    , space: "&nbsp"
+    , tab: "TAB"
     , favourites: "<3"
     , numbers: "#"
     , punctuation: ";"
-    , settings: "Set"
+    , more: "<3"
     }
   , bits: 5
   , initial: "alphabet"
   , delay: 1000
   }
 
+  var preview = document.querySelector(".k-preview span")
+  var textArea = document.querySelector(".k-container textarea")
+  var dotArray = document.querySelectorAll(".k-binary span")
+      dotArray = [].slice.call(dotArray)
   var scannedKeys = []
-  //var keyFilters = {}
+  var keyLUT = []
   var bits = keyboard.bits
   var scanDelay = keyboard.delay
+  var binary = 0
+  var bitValue = 0
+  var bitIndex = 0
+  var off = true
   var layout
+    , clickStamp
+    , clickElement
+    , focusElement
+    , timeout
+    , input
+    , specialAction
+    , confirmed
+
+  window.addEventListener("keydown", treatKeyDown, false)
+  window.addEventListener("mousedown", treatMouseDown, false)
+  window.addEventListener("focus", updateFocus, true)
+
+  function treatKeyDown(event) {
+    if (focusElement || event.ctrlKey || event.metaKey) {
+      // An able user is typing in an input field or using a keyboard
+      // shortcut
+      return
+    }
+
+    event.preventDefault()
+    // Select current bit
+    var dot = dotArray[bitIndex - 1]
+
+    console.log(bitIndex, "keydown")
+
+    if (bitIndex > bits) { 
+      confirmed = true
+    } else {
+      binary += bitValue
+      dot.classList.add("on")
+    }
+
+    off = false
+  }
+
+  function treatMouseDown(event) {
+    clickStamp = + new Date()
+    clickElement = event.target
+    // Assume that an able user is clicking outside a focusable
+    // element to give control back to a disabled user
+    userIsAble = (clickElement === focusElement)
+    if (!userIsAble) {
+      focusElement = null
+      textArea.classList.remove("focus")
+    }
+  }
+
+  function updateFocus(event) {
+    if (event.target === clickElement) {
+      userIsAble = new Date() - clickStamp < FOCUS_DELAY
+      if (userIsAble) {
+        // Focus was moved to a new element by a click: an able user
+        // is active
+        textArea.classList.add("focus")
+        focusElement = clickElement
+        window.clearTimeout(timeout)
+      }
+    }
+  }
 
   ;(function getScannedKeys(){
     // Creates an array of arrays of <span> elements, which should
@@ -76,82 +148,27 @@
     })
   })()
 
-  // ;(function createKeyFilters(){
-  //   // return
-  //   var layouts = keyboard.layouts
-  //   var name
-  //     , layout
-  //     , filter
-  //     , on
-  //     , off
-  //   //, all
-  //     , char
-  //     , num
-  //     , bit
-  //     , bitArray
-  //     , element
-
-  //   for (name in layouts) {
-  //     createFilterForLayout(name)
-  //   }
-
-  //   function createFilterForLayout(name) {
-  //     on = getBitLayout()
-  //     off = getBitLayout()
-  //     // all = getBitLayout()
-  //     filter = { on: on, off: off } //, all: all }
-  //     keyFilters[name] = filter
-  //     layout = layouts[name] // array of arrays
-  //     layout.forEach(function (row, rowIndex) {
-  //       row.forEach(function (keyObject, keyIndex) {
-  //         char = keyObject.name
-  //         num = keyObject.num
-  //         element = scannedKeys[rowIndex][keyIndex]
-
-  //         for (bit = 0; bit < bits; bit += 1) {
-  //           if (num % 2) {
-  //             bitArray = on[bit]
-  //           } else {
-  //             bitArray = off[bit]
-  //           }
-
-  //           bitArray.push(element)
-  //           num >>= 1
-  //         }
-  //       })
-  //     })
-  //   }
-
-  //   function getBitLayout() {
-  //     // If bits = 5, returns [[], [], [], [], []]
-  //     var bitLayout = []
-  //     var bit = bits
-  //     while (bit) {
-  //       bitLayout.push([])
-  //       bit -= 1
-  //     }
-
-  //     return bitLayout
-  //   }
-  // })()
-
   setKeyLayout(keyboard.initial)
   startScanLoop()
 
   function setKeyLayout(layoutName) {
     layout = keyboard.layouts[layoutName]
+    keyLUT.length = 0
     var icons = keyboard.icons
     var keys
       , keyObject
       , name
+      , num
       , element
 
     scannedKeys.forEach(function (row, rowIndex) {
       keys = layout[rowIndex]
       row.forEach(function (element, keyIndex) {
         keyObject = keys[keyIndex]
-        name = getKeyName(keyObject.name)
-        element.innerHTML = name
+        name = keyObject.name
+        num = keyObject.num
+        keyLUT[num] = name
+        element.innerHTML = getKeyName(name)
       })
     })
 
@@ -167,30 +184,45 @@
   }
 
   function startScanLoop() {
-    var firstPass = true
-    var shift = bits
-    var bitValue = 1 << bits // if bits = 5, bitValue will be 32
-    var binary = 0
-    var keyObject
+    var pass = 0
+    var dot = dotArray[dotArray.length - 1]
+    var maskValue
+      , keyObject
       , num
-      , trimmedNum
+      , maskedNum
       , check
       , className
+    
+    binary = 0
+    confirmed = false
+    specialAction = false
 
-    ;(function scanSwitch(){
-      bitValue >>= 1 // 32 - 16 - 8 - 4 - 2 - 1
+    startLoop()
+
+    function startLoop() {
+      bitValue = 1 << bits // if bits = 5, bitValue will be 32
+      bitIndex = 0
+      maskValue = 0
+      off = true
+
+      scanSwitch()
+    }
+
+    function scanSwitch(){
+      setDotClass()
+      bitValue >>= 1 // 32 - 16 - 8 - 4 - 2 - 1 - 0
+      bitIndex += 1
 
       scannedKeys.forEach(function (row, rowIndex) {
         row.forEach(function (element, keyIndex) {
           keyObject = layout[rowIndex][keyIndex]
-          num = keyObject.num       // e.g. 20 for "a" *.*..
-          trimmedNum = num >> shift // e.g. 2 (*.) if we're on 2nd *
-          check = (num & bitValue) !== 0
+          num = keyObject.num         // e.g. 20 for "a" *.*..
+          maskedNum = num & maskValue // e.g. 16 for "a" at 2nd bit
+          check = (num & bitValue) !== 0 // true if char uses this bit
 
-          if (firstPass) { // 
-            if (trimmedNum === binary) {
-              //
-              if (check) {
+          if (!pass) { // 
+            if (maskedNum === binary) {
+               if (check) {
                 // This bit contributes to this character
                 className = "highlight"
               } else {
@@ -199,10 +231,14 @@
             } else {
               className = "disable"
             }
-          } else if (binary & bitValue === 0) {
-            className = "highlight"
-          } else {
-            className = undefined
+
+          } else if (bitValue) {
+            // Correction: show highlight if this bit could be toggled
+            if (binary & bitValue === 0) {
+              className = "highlight"
+            } else {
+              className = undefined
+            }
           }
 
           element.classList.remove("highlight")
@@ -210,14 +246,93 @@
           if (className) {
             element.classList.add(className)
           }
-
         })
       })
 
       if (bitValue) {
-        shift -= 1
-        setTimeout(scanSwitch, scanDelay)
+        console.log(bitIndex)
+        maskValue += bitValue
+        timeout = window.setTimeout(scanSwitch, scanDelay)
+
+      } else {
+        showInput()
+        timeout = window.setTimeout(checkIfConfirmed, scanDelay)
       }
-    })()
+
+      function showInput() {
+        input = keyLUT[binary]
+        specialAction = (input.length > 1 || input.charAt(0) === "#")
+
+        if (specialAction) {
+          prepareSpecialAction()
+        } else {
+          // Remove all special settings
+          preview.className = "k-preview"
+          preview.innerHTML = input
+        }
+      }
+      
+      function checkIfConfirmed() {
+        if (confirmed) {
+          actOnInput()
+          resetKeyClasses()
+          startScanLoop()
+        } else {
+          pass += 1
+          startLoop()     
+        }
+      }
+
+      function actOnInput() {
+        if (specialAction) {
+          doSpecialAction()
+        } else {
+          textArea.innerHTML += input
+        }
+
+        input = ""
+      }
+
+      function prepareSpecialAction() {
+        switch (input) {
+          case "#space":
+          default:
+            preview.classList.add("special")
+            preview.innerHTML = input
+          break
+        }
+      }
+
+      function doSpecialAction() {
+        switch (input) {
+          case "#space":
+            textArea.innerHTML += " "
+          break
+        }
+      }
+
+      function resetKeyClasses() {
+        scannedKeys.forEach(function (row, rowIndex) {
+          row.forEach(function (element, keyIndex) {
+            element.classList.remove("highlight")
+            element.classList.remove("disable")
+          })
+        })
+
+        dotArray.forEach(function (dot) {
+          dot.classList.remove("on")
+          dot.classList.remove("off")
+        })
+      }
+
+      function setDotClass() {
+        dot.classList.remove("active")
+        if (!pass && off) {
+          dot.classList.add("off") // does not affect green "go" dot
+        }
+        dot = dotArray[bitIndex]
+        dot.classList.add("active")
+      }
+    }
   }
-})()
+})(window, document)

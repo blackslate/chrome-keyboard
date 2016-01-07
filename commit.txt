@@ -1,0 +1,5 @@
+Add one-touch interactivity
+
+- Able user can override by clicking in textarea
+- binary now constructed from the big end
+- dots shown as active and as on or off
