@@ -53,6 +53,11 @@ body, html,
   color: #999;
   background-color: #666;
 }
+.k-keyboard span.chosen{
+  color: #0f0;
+  background-color: #000;
+  font-weight: bold;
+}
 .k-container .k-preview,
 .k-container .k-binary,
 .k-container textarea { 

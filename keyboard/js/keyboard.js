@@ -63,6 +63,7 @@
   , bits: 5
   , initial: "alphabet"
   , delay: 1000
+  , actionRatio: 1.5 // 1000 - 1500 - 2250 - 3375 - ...
   }
 
   var preview = document.querySelector(".k-preview span")
@@ -71,17 +72,24 @@
       dotArray = [].slice.call(dotArray)
   var scannedKeys = []
   var keyLUT = []
+  var elementLUT = []
   var bits = keyboard.bits
   var scanDelay = keyboard.delay
+  var actionDelay = scanDelay
+  var actionRatio = keyboard.actionRatio
   var binary = 0
   var bitValue = 0
+  var switchValue = 0
   var bitIndex = 0
   var off = true
+  var touched = false
+
   var layout
     , clickStamp
     , clickElement
     , focusElement
     , timeout
+    , pass
     , input
     , specialAction
     , confirmed
@@ -91,7 +99,7 @@
   window.addEventListener("focus", updateFocus, true)
 
   function treatKeyDown(event) {
-    if (focusElement || event.ctrlKey || event.metaKey) {
+    if (focusElement || event.ctrlKey || event.metaKey || touched) {
       // An able user is typing in an input field or using a keyboard
       // shortcut
       return
@@ -100,14 +108,23 @@
     event.preventDefault()
     // Select current bit
     var dot = dotArray[bitIndex - 1]
-
-    console.log(bitIndex, "keydown")
+    touched = true
 
     if (bitIndex > bits) { 
-      confirmed = true
+      actOnInput()
     } else {
-      binary += bitValue
-      dot.classList.add("on")
+      binary += switchValue
+      if (pass) {
+        showInput()
+      }
+
+      if (switchValue > 0) {    
+        dot.classList.remove("off")
+        dot.classList.add("on")
+      } else {
+        dot.classList.remove("on")
+        dot.classList.add("off")
+      }
     }
 
     off = false
@@ -154,6 +171,7 @@
   function setKeyLayout(layoutName) {
     layout = keyboard.layouts[layoutName]
     keyLUT.length = 0
+    elementLUT.length = 0
     var icons = keyboard.icons
     var keys
       , keyObject
@@ -168,6 +186,7 @@
         name = keyObject.name
         num = keyObject.num
         keyLUT[num] = name
+        elementLUT[num] = element
         element.innerHTML = getKeyName(name)
       })
     })
@@ -184,7 +203,6 @@
   }
 
   function startScanLoop() {
-    var pass = 0
     var dot = dotArray[dotArray.length - 1]
     var maskValue
       , keyObject
@@ -193,8 +211,10 @@
       , check
       , className
     
+    actionDelay = scanDelay
     binary = 0
     confirmed = false
+    pass = 0
     specialAction = false
 
     startLoop()
@@ -203,7 +223,6 @@
       bitValue = 1 << bits // if bits = 5, bitValue will be 32
       bitIndex = 0
       maskValue = 0
-      off = true
 
       scanSwitch()
     }
@@ -211,7 +230,11 @@
     function scanSwitch(){
       setDotClass()
       bitValue >>= 1 // 32 - 16 - 8 - 4 - 2 - 1 - 0
+      // If binary contains bitValue, switchValue should be negative
+      switchValue = (binary & bitValue) ? -bitValue : bitValue
       bitIndex += 1
+      off = true
+      touched = false
 
       scannedKeys.forEach(function (row, rowIndex) {
         row.forEach(function (element, keyIndex) {
@@ -220,27 +243,13 @@
           maskedNum = num & maskValue // e.g. 16 for "a" at 2nd bit
           check = (num & bitValue) !== 0 // true if char uses this bit
 
-          if (!pass) { // 
-            if (maskedNum === binary) {
-               if (check) {
-                // This bit contributes to this character
-                className = "highlight"
-              } else {
-                className = undefined
-              }
-            } else {
-              className = "disable"
-            }
-
-          } else if (bitValue) {
-            // Correction: show highlight if this bit could be toggled
-            if (binary & bitValue === 0) {
-              className = "highlight"
-            } else {
-              className = undefined
-            }
+          if (!pass) {
+            className = firstPassClassName()
+          } else {
+            className = subsequentPassClassName()
           }
 
+          element.classList.remove("chosen")
           element.classList.remove("highlight")
           element.classList.remove("disable")
           if (className) {
@@ -250,70 +259,61 @@
       })
 
       if (bitValue) {
-        console.log(bitIndex)
         maskValue += bitValue
-        timeout = window.setTimeout(scanSwitch, scanDelay)
+        timeout = window.setTimeout(scanSwitch, actionDelay)
 
       } else {
-        showInput()
-        timeout = window.setTimeout(checkIfConfirmed, scanDelay)
+        showInput(true)
+        timeout = window.setTimeout(checkIfConfirmed, actionDelay)
       }
 
-      function showInput() {
-        input = keyLUT[binary]
-        specialAction = (input.length > 1 || input.charAt(0) === "#")
-
-        if (specialAction) {
-          prepareSpecialAction()
+      function firstPassClassName() {
+        if (maskedNum === binary) {
+           if (check) {
+            return "highlight"
+          } else {
+            return undefined
+          }
         } else {
-          // Remove all special settings
-          preview.className = "k-preview"
-          preview.innerHTML = input
+          return "disable"
         }
+      }
+
+      function subsequentPassClassName() {
+        var used
+          , active
+
+        if (bitValue) {
+          used = (binary & bitValue) !== 0
+          active = pass > 1 || maskedNum === (binary & maskValue)
+          if (active) {
+            if (check !== used) {
+              return "highlight"
+            }
+          } else {
+            return "disable"
+          }
+        }
+
+        return undefined
       }
       
       function checkIfConfirmed() {
         if (confirmed) {
-          actOnInput()
+          //actOnInput()
           resetKeyClasses()
           startScanLoop()
         } else {
+          actionDelay = actionDelay * actionRatio
           pass += 1
           startLoop()     
-        }
-      }
-
-      function actOnInput() {
-        if (specialAction) {
-          doSpecialAction()
-        } else {
-          textArea.innerHTML += input
-        }
-
-        input = ""
-      }
-
-      function prepareSpecialAction() {
-        switch (input) {
-          case "#space":
-          default:
-            preview.classList.add("special")
-            preview.innerHTML = input
-          break
-        }
-      }
-
-      function doSpecialAction() {
-        switch (input) {
-          case "#space":
-            textArea.innerHTML += " "
-          break
         }
       }
 
       function resetKeyClasses() {
         scannedKeys.forEach(function (row, rowIndex) {
           row.forEach(function (element, keyIndex) {
+            element.classList.remove("chosen")
             element.classList.remove("highlight")
             element.classList.remove("disable")
           })
@@ -333,6 +333,53 @@
         dot = dotArray[bitIndex]
         dot.classList.add("active")
       }
+    }
+  }
+
+  function showInput(chosen) {
+    input = keyLUT[binary]
+    specialAction = (input.length > 1 || input.charAt(0) === "#")
+
+    if (specialAction) {
+      prepareSpecialAction()
+    } else {
+      // Remove all special settings
+      preview.className = ""
+      preview.innerHTML = input
+    }
+
+    if (chosen) {
+      var element = elementLUT[binary]
+      element.classList.add("chosen")
+    }
+  }
+
+  function actOnInput() {
+    if (specialAction) {
+      doSpecialAction()
+    } else {
+      textArea.innerHTML += input
+    }
+
+    input = ""
+    confirmed = true
+  }
+
+  function doSpecialAction() {
+    switch (input) {
+      case "#space":
+        textArea.innerHTML += " "
+      break
+    }
+  }
+
+  function prepareSpecialAction() {
+    switch (input) {
+      case "#space":
+      default:
+        preview.classList.add("special")
+        preview.innerHTML = input
+      break
     }
   }
 })(window, document)

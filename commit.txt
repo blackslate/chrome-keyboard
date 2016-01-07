@@ -1,5 +1,8 @@
-Add one-touch interactivity
+Fix second pass feedback
 
-- Able user can override by clicking in textarea
-- binary now constructed from the big end
-- dots shown as active and as on or off
+- actionRatio to slow down while correcting
+- switchValue may be -bitValue
+- input updated after each switch activation
+- third and subsequent passes allow multiple-pass changes
+- key goes green when it is time to confirm it
+- you can hold the switch down for several consecutive bits
