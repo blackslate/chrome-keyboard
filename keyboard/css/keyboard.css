@@ -2,7 +2,6 @@
 .k-container {
   font-size: 2.5vw;
   position: fixed;
-  background-color: #eff;
   bottom: 0;
 }
 
@@ -15,45 +14,54 @@ body, html,
   padding: 0;
   box-sizing: border-box;
 }
-.k-keyboard span{
+.k-keyboard span,
+.k-container .k-preview span {
   display:inline-block;
+  text-align: center;
+}
+.k-keyboard span,
+.k-container .k-preview {
+  border: 1px solid #ccc;
+  border-right: 1px solid #666;
+  border-bottom: 1px solid #666;
+}
+.k-keyboard span {
   width: 2em;
   height: 2em;
-  text-align: center;
   border: 1px solid #ccc;
   border-right: 1px solid #666;
   border-bottom: 1px solid #666;
   line-height: 2em;
-}
-.k-keyboard span:nth-child(odd){
-  background-color: #ffe; 
-}
-.k-keyboard span:nth-child(even){
-  background-color: #eef; 
+  color: #ccc;
+  background-color: #000;
 }
 .k-keyboard span.k-alternative{
   width: 3.333em;
-  background-color: #fef;
+}
+.k-keyboard span.highlight{
+  color: #ff0;
+  font-weight: bold;
+}
+.k-keyboard span.disable{
+  color: #999;
+  background-color: #666;
 }
 .k-container .k-preview,
 .k-container .k-binary,
 .k-container textarea { 
   position: absolute;
- 
 }
 .k-container .k-preview {
   left: 12em;
   top: 4em;
   width: 6em;
   height: 6em;
-  background-color: #efe;
 } 
 .k-container .k-preview span {
   width: 100%;
   height: 100%;
-  background-color: #efe;
   font-size: 6em;
-  line-height: 1em;
+  line-height: 0.8em;
 }
 .k-container .k-binary {
   width: 5vw;
@@ -61,7 +69,6 @@ body, html,
   left: 45vw;
   height: 25vw;
   text-align: center;
-  background-color: #fed;
 }
 .k-container .k-binary span {
   padding-top: 1vw;
@@ -74,5 +81,4 @@ body, html,
   top: 0;
   left: 50vw;
   height: 25vw;
-  background-color: #edf;
 }

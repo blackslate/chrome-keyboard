@@ -29,11 +29,11 @@ Letter Frequency
  
  Unused for letters
 
-          ***** 
-          ***..
-          **.*.
-          **..*
-          **.**
+          ***** 31 -edit
+          **..* 25 -favourites
+          **.*. 26 -numbers
+          **.** 27 -punctuation
+          ***.. 28 -settings
           ..... space (two spaces = .)
 
 

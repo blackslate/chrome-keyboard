@@ -1,0 +1,65 @@
+The number and layout of the keyboard cells can be customized.
+The contents of the keyboard cells can be customized.
+The binary patterns to use for each input can be customized.
+
+Each keyboard should be defined by a JSON file which gives:
+- CSS for all layouts
+- Cell content for each layout
+- The binary pattern for each cell in each layout
+
+As the scan proceeds, we need to:
+- remove all special classes
+- check which bits have been set
+- filter out chars which don't match the bits currently set
+- set their class to disabled
+- highlight the active members of the current filtered set
+
+Iterate through elements in `on` list and then `off` list
+- 
+
+layouts[layoutName] = [
+  [
+    {name: "x", num: 00}
+  ]
+]
+
+scannedKeys = [
+  [
+    <element>
+  ]
+]
+
+keyFilters[layoutName] = {
+  on: [
+    [<element>, ...] // bit 0
+  , [<element>, ...]
+  , [<element>, ...]
+  , [<element>, ...]
+  , [<element>, ...] // bit 4
+  ]
+, off: [
+
+  ]
+}
+
+First pass:
+- iterate through row and key of scannedKeys to get the element
+- get the num from the same place in layout
+- strip all littler bits off num
+  - check if what's left matches current value
+    - if so, check = num & currentBit !== 0
+      - if check, className = "highlight"
+      - if not, className = ""
+    - if not, className = "disabled"
+- if all bits treated, update preview
+
+Second pass:
+- iterate through row and key of scannedKeys to get the element
+- get the num from the same place in layout
+- strip all littler bits off num
+  - check if what's left matches current value
+    - if so, check = num & currentBit !== 0
+      - if check != currentBit, className = "highlight"
+      - otherwise, className = ""
+    - if not, className = "disabled"
+- update preview
