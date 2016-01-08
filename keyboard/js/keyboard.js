@@ -207,12 +207,28 @@
   // Shared objects
   var layout = []
 
+  /** The LayoutManager deals with the (32) keys of the virtual
+   *  keyboard. It allows you to switch between keyboard layouts,
+   *  to highlight and disable keys as they are scanned, and to
+   *  get the current input and its associated <span> element.
+   */
   var LayoutManager = (function () {
-    var keyLUT = []
-    var elementLUT = []
+    var keyLUT = []      // [<num>: <keyName>, ...]
+    var elementLUT = []  // [<num>: <span element>, ...]
+    var scannedKeys = [] // [[<span element>, ...], <row>, ...]
 
     function LayoutManager(layouts) {   
       this.layouts = layouts
+
+      ;(function getScannedKeys(){
+        // Creates an array of arrays of <span> elements, which should
+        // have the same structure as each layout
+        var keyboard = document.querySelectorAll(".k-keyboard p")
+        scannedKeys = [].slice.call(keyboard)
+        scannedKeys.forEach(function(row, index) {
+          scannedKeys[index] = [].slice.call(row.children)
+        })
+      })()
     }
 
     LayoutManager.prototype.setKeyLayout = function (layoutName) {
@@ -261,6 +277,86 @@
       }
     }
 
+    LayoutManager.prototype.getInput = function () {
+      return keyLUT[binary]
+    }
+
+    LayoutManager.prototype.getElement = function () {
+      return elementLUT[binary]
+    }
+
+    LayoutManager.prototype.scanKeys = function scanKeys(
+      binary, bitValue, maskValue) {
+      var keyObject
+        , num
+        , maskedNum
+        , check
+        , className
+
+      scannedKeys.forEach(function (row, rowIndex) {
+        row.forEach(function (element, keyIndex) {
+          keyObject = layout[rowIndex][keyIndex]
+          num = keyObject.num         // e.g. 20 for "a" *.*..
+          maskedNum = num & maskValue // e.g. 16 for "a" at 2nd bit
+          check = (num & bitValue) !== 0 // true if char uses this bit
+
+          if (!pass) {
+            className = firstPassClassName()
+          } else {
+            className = subsequentPassClassName()
+          }
+
+          element.classList.remove("chosen")
+          element.classList.remove("highlight")
+          element.classList.remove("disable")
+          if (className) {
+            element.classList.add(className)
+          }
+        })
+      })
+
+      function firstPassClassName() {
+        if (maskedNum === binary) {
+           if (check) {
+            return "highlight"
+          } else {
+            return undefined
+          }
+        } else {
+          return "disable"
+        }
+      }
+
+      function subsequentPassClassName() {
+        var used
+          , active
+
+        if (bitValue) {
+          used = (binary & bitValue) !== 0
+          active = pass > 1 || maskedNum === (binary & maskValue)
+          if (active) {
+            if (check !== used) {
+              return "highlight"
+            }
+          } else {
+            return "disable"
+          }
+        }
+
+        return undefined
+      }
+    }
+
+    LayoutManager.prototype.resetKeyClasses = function() {
+      scannedKeys.forEach(function (row, rowIndex) {
+        row.forEach(function (element, keyIndex) {
+          element.classList.remove("chosen")
+          element.classList.remove("highlight")
+          element.classList.remove("disable")
+        })
+      })
+    }
+
     return LayoutManager;
   })();
 
@@ -272,7 +368,6 @@
   var textArea = document.querySelector(".k-container textarea")
   var dotArray = document.querySelectorAll(".k-binary span")
       dotArray = [].slice.call(dotArray)
-  var scannedKeys = []
 
   var icons = keyboard.icons
   var bits = keyboard.bits
@@ -365,16 +460,6 @@
     }
   }
 
-  ;(function getScannedKeys(){
-    // Creates an array of arrays of <span> elements, which should
-    // have the same structure as each layout
-    var keyboard = document.querySelectorAll(".k-keyboard p")
-    scannedKeys = [].slice.call(keyboard)
-    scannedKeys.forEach(function(row, index) {
-      scannedKeys[index] = [].slice.call(row.children)
-    })
-  })()
-
   layoutManager.setKeyLayout(keyboard.initial)
   startScanLoop()
 
@@ -394,11 +479,11 @@
     specialAction = false
 
 
-    resetKeyClasses()
+    layoutManager.resetKeyClasses()
+    resetDots()
     startLoop()
 
     function startLoop() {
-
       bitValue = 1 << bits // if bits = 5, bitValue will be 32
       bitIndex = 0
       maskValue = 0
@@ -415,27 +500,7 @@
       off = true
       touched = false
 
-      scannedKeys.forEach(function (row, rowIndex) {
-        row.forEach(function (element, keyIndex) {
-          keyObject = layout[rowIndex][keyIndex]
-          num = keyObject.num         // e.g. 20 for "a" *.*..
-          maskedNum = num & maskValue // e.g. 16 for "a" at 2nd bit
-          check = (num & bitValue) !== 0 // true if char uses this bit
-
-          if (!pass) {
-            className = firstPassClassName()
-          } else {
-            className = subsequentPassClassName()
-          }
-
-          element.classList.remove("chosen")
-          element.classList.remove("highlight")
-          element.classList.remove("disable")
-          if (className) {
-            element.classList.add(className)
-          }
-        })
-      })
+      layoutManager.scanKeys(binary, bitValue, maskValue)
 
       if (bitValue) {
         maskValue += bitValue
@@ -445,42 +510,12 @@
         showInput(true)
         scanTimeout = window.setTimeout(checkIfConfirmed, actionDelay)
       }
-
-      function firstPassClassName() {
-        if (maskedNum === binary) {
-           if (check) {
-            return "highlight"
-          } else {
-            return undefined
-          }
-        } else {
-          return "disable"
-        }
-      }
-
-      function subsequentPassClassName() {
-        var used
-          , active
-
-        if (bitValue) {
-          used = (binary & bitValue) !== 0
-          active = pass > 1 || maskedNum === (binary & maskValue)
-          if (active) {
-            if (check !== used) {
-              return "highlight"
-            }
-          } else {
-            return "disable"
-          }
-        }
-
-        return undefined
-      }
       
       function checkIfConfirmed() {
         if (confirmed) {
           //actOnInput()
-          resetKeyClasses()
+          layoutManager.resetKeyClasses()
+          resetDots()
           startScanLoop()
         } else {
           actionDelay = Math.min(actionDelay * actionRatio, maxDelay)
@@ -495,21 +530,11 @@
           dot.classList.add("off") // does not affect green "go" dot
         }
         dot = dotArray[bitIndex]
-        dot.classList.add("active")
+        if (dot) {
+          dot.classList.add("active")
+        }
       }
     }
-  }
-
-  function resetKeyClasses() {
-    scannedKeys.forEach(function (row, rowIndex) {
-      row.forEach(function (element, keyIndex) {
-        element.classList.remove("chosen")
-        element.classList.remove("highlight")
-        element.classList.remove("disable")
-      })
-    })
-
-    resetDots()
   }
 
   function resetDots() {
@@ -518,6 +543,24 @@
       dot.classList.remove("off")
       dot.classList.remove("active")
     })
+  }
+
+  function showInput(chosen) {
+    input = layoutManager.getInput()
+    specialAction = (input.length > 1 && input.charAt(0) === "#")
+
+    if (specialAction) {
+      prepareSpecialAction()
+    } else {
+      // Remove all special settings
+      preview.className = ""
+      preview.innerHTML = input
+    }
+
+    if (chosen) {
+      var element = layoutManager.getElement()
+      element.classList.add("chosen")
+    }
   }
 
   function actOnInput() {
