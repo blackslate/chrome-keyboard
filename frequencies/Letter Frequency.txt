@@ -40,6 +40,14 @@ Letter Frequency
 2. SPACE
 3. TAB
 4. Numbers, mathematics & currency
+   +-×/
+   =<>%
+   12345.
+   67890,
+   *|&~π$
+
+   &times; http://stackoverflow.com/a/24440382/1927589
+
    0123 4567
    89+- /=*~
    |`<> $¢£€
@@ -47,7 +55,7 @@ Letter Frequency
 5. Punctuation
    ,^()
    .¶[]
-   !{}«»*
+   !{}«»#
    ?-\/&@
    :;_"'—
 
@@ -58,5 +66,13 @@ Letter Frequency
 6. More
    àâæç éèêë
    îïôœ ùûüÿ
-   ´`¨
-   «»
+   £€¥¢ º•`√
+   ¡¿
+
+   àâçæ
+   éèêë
+   îï¡¿º•
+   ôœ£€¥¢
+   ùûü`ÿ√
+    
+   

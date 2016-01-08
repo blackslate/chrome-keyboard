@@ -1,5 +1,7 @@
-Add punctuation layout
+Add number and more layouts, plus LayoutManager
 
-- specialAction -> setKeyLayout(...)
-- TODO
-  - set a way to return to the current keyboard
+- fixed able/disable switch on click
+- blue border for modifier cells + TAB + SPACE
+- red and green border used for lock and flip
+- 123, .,?! and éèêë used for other layouts
+- ^ (upperCase) changed to Aa

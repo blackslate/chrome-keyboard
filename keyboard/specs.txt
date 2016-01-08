@@ -77,8 +77,34 @@ The first character of any text is likely to be a capital. The first character a
 
 Some languages (such as Thai) don't have uppercase letters (or full stops).
 
-The user should be able to capitalize any letter, using Edit > Uppercase > <next letter>. When UpperCase is true, the keyElements need to show it.
+The user should be able to capitalize any letter, using Punctuation > Uppercase > <next letter>. When UpperCase is true, the keyElements need to show it.
+
+Punctuation > upperCase will automatically revert to ABC lower case for the next input, even if the previous layout was numbers or accents.
+Punctuation > (Lock) > upperCase will automatically revert to ABC and remain in upperCase until Punctuation > upperCase is reselected.
 
 Shortcuts
 =========
-Two spaces to create a full stop. Three to create a new line. ()
+Two spaces to create a full stop. Three to create a new line. Four to create an empty line.
+
+Type keyboard choice twice to lock that keyboard. Type once to revert to previous keyboard after one character.
+
+When a keyboard layout is chosen, the cell gets a red border. If you do not select it immediately, the keyboard will automatically revert.
+If you do select it immediately, the name of the cell will change to ABC and the border will go green. You can now continue with the current layout until you choose a different one. If you choose another layout that is not ABC, the newly-selected layout will appear with a red border. Selecting it again will swap its name to ABC, and restore the name of the first alternative layout. Selecting something else will revert to the most recent layout. If you need to get back to ABC, you will need to select it explicitly.
+
+Objects
+=======
+• Input
+• Scanning
+• Layout
+• Keyboard display
+• Bits display
+
+*** Same bit pattern for all keys in all layouts ***
+
+LayoutManager
+=============
+After each confirm action, ask the layoutManager if the layout needs to be updated.
+
+• Confirm new layout
+• Revert to earlier layout
+• Lock current layout

@@ -1,8 +1,7 @@
 "use strict"
 
 ;(function keyboard(window, document){
-  var FOCUS_DELAY = 10
-  var userIsAble = false
+  // Should be read in as JSON file, along with custom HTML and CSS
   var keyboard = {
     layouts: {
       alphabet: [
@@ -79,7 +78,7 @@
         , {name: "}", num:  7}
         , {name: "«&nbsp", num:  9}
         , {name: "&nbsp»", num:  5}
-        , {name: "*", num:  4}
+        , {name: "#", num:  4}
         ]
       , [
           {name: "?", num: 18}
@@ -98,25 +97,127 @@
         , {name: "—", num: 19}
         ]
       ]
+    , numbers: [
+        [
+          {name: "+", num: 20}
+        , {name: "-", num: 15}
+        , {name: "×", num:  6}
+        , {name: "/", num: 10}
+        , {name: "#edit", num: 31}
+        , {name: "#space", num: 0}
+        , {name: "#tab", num: 25} // **..*•
+        ]
+      , [
+          {name: "=", num: 16}
+        , {name: "%", num: 14}
+        , {name: "<", num: 13}
+        , {name: ">", num: 12}
+        , {name: "#numbers", num: 26}
+        , {name: "#punctuation", num: 27}
+        , {name: "#more", num: 28}
+        ]
+      , [
+          {name: "1", num: 17}
+        , {name: "2", num: 29}
+        , {name: "3", num:  7}
+        , {name: "4", num:  9}
+        , {name: "5", num:  5}
+        , {name: ".", num:  4}
+        ]
+      , [
+          {name: "6", num: 18}
+        , {name: "7", num: 11}
+        , {name: "8",num: 30}
+        , {name: "9", num:  1}
+        , {name: "0", num:  2}
+        , {name: ",", num:  8}
+        ]
+      , [
+          {name: "*", num: 22}
+        , {name: "|", num: 23}
+        , {name: "&", num: 21}
+        , {name: '~', num:  3}
+        , {name: "$", num: 24}
+        , {name: "¢", num: 19}
+        ]
+      ]
+   , more: [
+        [
+          {name: "à", num: 20}
+        , {name: "â", num: 15}
+        , {name: "ç", num:  6}
+        , {name: "æ", num: 10}
+        , {name: "#edit", num: 31}
+        , {name: "#space", num: 0}
+        , {name: "#tab", num: 25} // **..*•
+        ]
+      , [
+          {name: "é", num: 16}
+        , {name: "è", num: 14}
+        , {name: "ê", num: 13}
+        , {name: "ë", num: 12}
+        , {name: "#numbers", num: 26}
+        , {name: "#punctuation", num: 27}
+        , {name: "#more", num: 28}
+        ]
+      , [
+          {name: "î", num: 17}
+        , {name: "ï", num: 29}
+        , {name: "¡", num:  7}
+        , {name: "¿", num:  9}
+        , {name: "°", num:  5}
+        , {name: "•", num:  4}
+        ]
+      , [
+          {name: "ô", num: 18}
+        , {name: "œ", num: 11}
+        , {name: "£",num: 30}
+        , {name: "€", num:  1}
+        , {name: "¥", num:  2}
+        , {name: "¢", num:  8}
+        ]
+      , [
+          {name: "ù", num: 22}
+        , {name: "û", num: 23}
+        , {name: "ü", num: 21}
+        , {name: '`', num:  3}
+        , {name: "ÿ", num: 24}
+        , {name: "√", num: 19}
+        ]
+      ]
     }
   , icons: {
       alphabet: "ABC"
     , edit: "Edit"
     , space: "&nbsp"
     , tab: "TAB"
-    , favourites: "<3"
-    , numbers: "#"
-    , punctuation: ";"
-    , more: "œ"
-    , upperCase: "^"
+    , numbers: "123"
+    , punctuation: ",.?!"
+    , more: "éèêë"
+    , upperCase: "Aa"
     }
   , bits: 5
   , initial: "alphabet"
   , delay: 1000
-  , actionRatio: 1.5 // 1000 - 1500 - 2250 - 3375 - ...
-  , maxDelay: 2500
+  , actionRatio: 1.1 // 1100 - 1210 - 1331 - 1464 - ...
+  , maxDelay: 2000
   , autoCapitalize: true
   }
+
+  var LayoutManager = (function (layouts) {
+    function LayoutManager() {
+      
+    }
+
+    LayoutManager.prototype.move = function () {
+    }
+
+    return LayoutManager;
+  })();
+
+  var layoutManager = new LayoutManager()
+  var FOCUS_DELAY = 10
+  var userIsAble = false
 
   var preview = document.querySelector(".k-preview span")
   var textArea = document.querySelector(".k-container textarea")
@@ -144,7 +245,8 @@
     , clickStamp
     , clickElement
     , focusElement
-    , timeout
+    , scanTimeout
+    , focusTimeout
     , pass
     , input
     , specialAction
@@ -195,6 +297,7 @@
     if (!userIsAble) {
       focusElement = null
       textArea.classList.remove("focus")
+      focusTimeout = window.setTimeout(startScanLoop, FOCUS_DELAY)
     }
   }
 
@@ -209,9 +312,9 @@
       // is active
       textArea.classList.add("focus")
       focusElement = clickElement
-      window.clearTimeout(timeout)
-    } else {
-      startScanLoop()
+      window.clearTimeout(scanTimeout)
+      window.clearTimeout(focusTimeout)
+      resetDots()
     }
   }
 
@@ -332,11 +435,11 @@
 
       if (bitValue) {
         maskValue += bitValue
-        timeout = window.setTimeout(scanSwitch, actionDelay)
+        scanTimeout = window.setTimeout(scanSwitch, actionDelay)
 
       } else {
         showInput(true)
-        timeout = window.setTimeout(checkIfConfirmed, actionDelay)
+        scanTimeout = window.setTimeout(checkIfConfirmed, actionDelay)
       }
 
       function firstPassClassName() {
@@ -402,9 +505,14 @@
       })
     })
 
+    resetDots()
+  }
+
+  function resetDots() {
     dotArray.forEach(function (dot) {
       dot.classList.remove("on")
       dot.classList.remove("off")
+      dot.classList.remove("active")
     })
   }
 
@@ -449,6 +557,7 @@
       break
       case "#punctuation":
       case "#numbers":
+      case "#more":
         setKeyLayout(input.substring(1))
       break
     }

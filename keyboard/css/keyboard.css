@@ -28,22 +28,33 @@ body, html,
 }
 .k-keyboard span,
 .k-container .k-preview {
-  border: 1px solid #ccc;
-  border-right: 1px solid #666;
-  border-bottom: 1px solid #666;
+  border: 2px solid #ccc;
+  border-right-color: #666;
+  border-bottom-color: #666;
+  border-radius: 4px;
 }
 .k-keyboard span {
   width: 2em;
   height: 2em;
-  border: 1px solid #ccc;
-  border-right: 1px solid #666;
-  border-bottom: 1px solid #666;
   line-height: 2em;
   color: #ccc;
   background-color: #000;
 }
 .k-keyboard span.k-alternative{
   width: 3.333em;
+  border-color: #66f;
+  border-right-color: #006;
+  border-bottom-color: #006;
+}
+.k-keyboard span.lock{
+  border-color: #c00;
+  border-right-color: #600;
+  border-bottom-color: #600;
+}
+.k-keyboard span.flip{
+  border-color: #6c6;
+  border-right-color: #363;
+  border-bottom-color: #363;
 }
 .k-keyboard span.highlight{
   color: #ff0;
