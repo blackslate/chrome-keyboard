@@ -54,8 +54,8 @@ body, html,
   background-color: #666;
 }
 .k-keyboard span.chosen{
-  color: #0f0;
-  background-color: #000;
+  color: #fff;
+  background-color: #090;
   font-weight: bold;
 }
 .k-container .k-preview,

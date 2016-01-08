@@ -70,3 +70,15 @@ A focus event is fired only if focus changes. A mousedown event fires at each cl
 Correction
 ==========
 In pass > 0, activating the switch may `remove` the value of bitValue, if that bit is currently set
+
+Capitals
+========
+The first character of any text is likely to be a capital. The first character after a full stop is normally a capital. We need to show capitals in the keyboard by default, but the alternative elements need to remain lower case.
+
+Some languages (such as Thai) don't have uppercase letters (or full stops).
+
+The user should be able to capitalize any letter, using Edit > Uppercase > <next letter>. When UpperCase is true, the keyElements need to show it.
+
+Shortcuts
+=========
+Two spaces to create a full stop. Three to create a new line. ()

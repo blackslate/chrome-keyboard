@@ -58,12 +58,14 @@
     , favourites: "<3"
     , numbers: "#"
     , punctuation: ";"
-    , more: "<3"
+    , more: "œ"
     }
   , bits: 5
   , initial: "alphabet"
   , delay: 1000
   , actionRatio: 1.5 // 1000 - 1500 - 2250 - 3375 - ...
+  , maxDelay: 2500
+  , autoCapitalize: true
   }
 
   var preview = document.querySelector(".k-preview span")
@@ -73,16 +75,20 @@
   var scannedKeys = []
   var keyLUT = []
   var elementLUT = []
+  var icons = keyboard.icons
   var bits = keyboard.bits
   var scanDelay = keyboard.delay
   var actionDelay = scanDelay
   var actionRatio = keyboard.actionRatio
+  var maxDelay = keyboard.maxDelay
   var binary = 0
   var bitValue = 0
   var switchValue = 0
   var bitIndex = 0
   var off = true
   var touched = false
+  var upperCase = keyboard.autoCapitalize
+  var capsLock = false
 
   var layout
     , clickStamp
@@ -94,9 +100,9 @@
     , specialAction
     , confirmed
 
-  window.addEventListener("keydown", treatKeyDown, false)
-  window.addEventListener("mousedown", treatMouseDown, false)
-  window.addEventListener("focus", updateFocus, true)
+  document.addEventListener("keydown", treatKeyDown, false)
+  document.addEventListener("mousedown", treatMouseDown, false)
+  document.addEventListener("focus", updateFocus, true)
 
   function treatKeyDown(event) {
     if (focusElement || event.ctrlKey || event.metaKey || touched) {
@@ -142,16 +148,20 @@
     }
   }
 
-  function updateFocus(event) {
-    if (event.target === clickElement) {
-      userIsAble = new Date() - clickStamp < FOCUS_DELAY
-      if (userIsAble) {
-        // Focus was moved to a new element by a click: an able user
-        // is active
-        textArea.classList.add("focus")
-        focusElement = clickElement
-        window.clearTimeout(timeout)
-      }
+  function updateFocus(event) {  
+    userIsAble = new Date() - clickStamp < FOCUS_DELAY
+    if (userIsAble) {
+      userIsAble = (event.target === clickElement)
+    }
+
+    if (userIsAble) {
+      // Focus was moved to a new element by a click: an able user
+      // is active
+      textArea.classList.add("focus")
+      focusElement = clickElement
+      window.clearTimeout(timeout)
+    } else {
+      startScanLoop()
     }
   }
 
@@ -169,10 +179,15 @@
   startScanLoop()
 
   function setKeyLayout(layoutName) {
-    layout = keyboard.layouts[layoutName]
+    if (layoutName) {
+      layout = keyboard.layouts[layoutName]
+    }
+    if (!layout) {
+      return
+    }
+
     keyLUT.length = 0
     elementLUT.length = 0
-    var icons = keyboard.icons
     var keys
       , keyObject
       , name
@@ -185,21 +200,25 @@
         keyObject = keys[keyIndex]
         name = keyObject.name
         num = keyObject.num
-        keyLUT[num] = name
+        keyLUT[num] = getKeyName(name, true) // may be "#iconName"
         elementLUT[num] = element
-        element.innerHTML = getKeyName(name)
+        element.innerHTML = getKeyName(name, false)
       })
     })
+  }
 
-    function getKeyName(name) {
-      if (name.length > 1) {
-        if (name.charAt(0) === "#") {
-          name = icons[name.substring(1)]
-        }
+  function getKeyName(name, respectHash) {
+    if (name.length > 1 && name.charAt(0) === "#") {
+      if (respectHash) {
+        // Leave name as it is
+      } else {
+        name = icons[name.substring(1)]
       }
-
-      return name
+    } else if (upperCase) {
+      name = name.charAt(0).toUpperCase() + name.slice(1)
     }
+
+    return name
   }
 
   function startScanLoop() {
@@ -217,9 +236,12 @@
     pass = 0
     specialAction = false
 
+
+    resetKeyClasses()
     startLoop()
 
     function startLoop() {
+
       bitValue = 1 << bits // if bits = 5, bitValue will be 32
       bitIndex = 0
       maskValue = 0
@@ -304,25 +326,10 @@
           resetKeyClasses()
           startScanLoop()
         } else {
-          actionDelay = actionDelay * actionRatio
+          actionDelay = Math.min(actionDelay * actionRatio, maxDelay)
           pass += 1
           startLoop()     
         }
-      }
-
-      function resetKeyClasses() {
-        scannedKeys.forEach(function (row, rowIndex) {
-          row.forEach(function (element, keyIndex) {
-            element.classList.remove("chosen")
-            element.classList.remove("highlight")
-            element.classList.remove("disable")
-          })
-        })
-
-        dotArray.forEach(function (dot) {
-          dot.classList.remove("on")
-          dot.classList.remove("off")
-        })
       }
 
       function setDotClass() {
@@ -336,9 +343,24 @@
     }
   }
 
+  function resetKeyClasses() {
+    scannedKeys.forEach(function (row, rowIndex) {
+      row.forEach(function (element, keyIndex) {
+        element.classList.remove("chosen")
+        element.classList.remove("highlight")
+        element.classList.remove("disable")
+      })
+    })
+
+    dotArray.forEach(function (dot) {
+      dot.classList.remove("on")
+      dot.classList.remove("off")
+    })
+  }
+
   function showInput(chosen) {
     input = keyLUT[binary]
-    specialAction = (input.length > 1 || input.charAt(0) === "#")
+    specialAction = (input.length > 1 && input.charAt(0) === "#")
 
     if (specialAction) {
       prepareSpecialAction()
@@ -363,6 +385,11 @@
 
     input = ""
     confirmed = true
+
+    if (upperCase && !capsLock) {
+      upperCase = false
+      setKeyLayout()
+    }
   }
 
   function doSpecialAction() {

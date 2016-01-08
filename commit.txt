@@ -1,8 +1,6 @@
-Fix second pass feedback
+Treat ergonomic issues
 
-- actionRatio to slow down while correcting
-- switchValue may be -bitValue
-- input updated after each switch activation
-- third and subsequent passes allow multiple-pass changes
-- key goes green when it is time to confirm it
-- you can hold the switch down for several consecutive bits
+- maxDelay set
+- background-color set to #090 for key confirmation
+- fixed bug with correction loop not updating bit buttons
+- first character automatically set to Capital
