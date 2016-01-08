@@ -357,10 +357,100 @@
       })
     }
 
-    return LayoutManager;
-  })();
+    return LayoutManager
+  })()
+
+  var InputManager = (function () {
+    var x = 0
+
+    function InputManager() {
+      document.addEventListener("keydown", treatKeyDown, false)
+      document.addEventListener("mousedown", treatMouseDown, false)
+      document.addEventListener("focus", updateFocus, true)
+    }
+
+    function treatKeyDown(event) {
+      if (focusElement || event.ctrlKey || event.metaKey || touched) {
+        // An able user is typing in an input field or using a keyboard
+        // shortcut
+        return
+      }
+
+      event.preventDefault()
+      scanManager.toggleBit()
+    }
+
+    function treatMouseDown(event) {
+      clickStamp = + new Date()
+      clickElement = event.target
+      // Assume that an able user is clicking outside a focusable
+      // element to give control back to a disabled user
+      userIsAble = (clickElement === focusElement)
+      if (!userIsAble) {
+        focusElement = null
+        textArea.classList.remove("focus")
+        focusTimeout = window.setTimeout(startScanLoop, FOCUS_DELAY)
+      }
+    }
+
+    function updateFocus(event) {  
+      userIsAble = new Date() - clickStamp < FOCUS_DELAY
+      if (userIsAble) {
+        userIsAble = (event.target === clickElement)
+      }
+
+      if (userIsAble) {
+        // Focus was moved to a new element by a click: an able user
+        // is active
+        textArea.classList.add("focus")
+        focusElement = clickElement
+        window.clearTimeout(scanTimeout)
+        window.clearTimeout(focusTimeout)
+        resetDots()
+      }
+      
+    }
+
+    //InputManager.prototype.method = function (layoutName) {}
+    
+    return InputManager
+  })()
+
+  var ScanManager = (function () {
+    function ScanManager( ) {
+
+    }
+
+    ScanManager.prototype.toggleBit = function toggleBit() {
+      var dot = dotArray[bitIndex - 1]
+      touched = true
+
+      if (bitIndex > bits) { 
+        actOnInput()
+      } else {
+        binary += switchValue
+        if (pass) {
+          showInput()
+        }
+
+        if (switchValue > 0) {    
+          dot.classList.remove("off")
+          dot.classList.add("on")
+        } else {
+          dot.classList.remove("on")
+          dot.classList.add("off")
+        }
+      }
+
+      off = false
+    }
+
+    return ScanManager
+  })()
 
   var layoutManager = new LayoutManager(keyboard.layouts, layout)
+  var inputManager = new InputManager()
+  var scanManager = new ScanManager()
   var FOCUS_DELAY = 10
   var userIsAble = false
 
@@ -380,7 +470,7 @@
   var switchValue = 0
   var bitIndex = 0
   var off = true
-  var touched = false
+  var touched = false // detects one input event per scan interval
   var upperCase = keyboard.autoCapitalize
   var capsLock = false
 
@@ -393,72 +483,6 @@
     , input
     , specialAction
     , confirmed
-
-  document.addEventListener("keydown", treatKeyDown, false)
-  document.addEventListener("mousedown", treatMouseDown, false)
-  document.addEventListener("focus", updateFocus, true)
-
-  function treatKeyDown(event) {
-    if (focusElement || event.ctrlKey || event.metaKey || touched) {
-      // An able user is typing in an input field or using a keyboard
-      // shortcut
-      return
-    }
-
-    event.preventDefault()
-    // Select current bit
-    var dot = dotArray[bitIndex - 1]
-    touched = true
-
-    if (bitIndex > bits) { 
-      actOnInput()
-    } else {
-      binary += switchValue
-      if (pass) {
-        showInput()
-      }
-
-      if (switchValue > 0) {    
-        dot.classList.remove("off")
-        dot.classList.add("on")
-      } else {
-        dot.classList.remove("on")
-        dot.classList.add("off")
-      }
-    }
-
-    off = false
-  }
-
-  function treatMouseDown(event) {
-    clickStamp = + new Date()
-    clickElement = event.target
-    // Assume that an able user is clicking outside a focusable
-    // element to give control back to a disabled user
-    userIsAble = (clickElement === focusElement)
-    if (!userIsAble) {
-      focusElement = null
-      textArea.classList.remove("focus")
-      focusTimeout = window.setTimeout(startScanLoop, FOCUS_DELAY)
-    }
-  }
-
-  function updateFocus(event) {  
-    userIsAble = new Date() - clickStamp < FOCUS_DELAY
-    if (userIsAble) {
-      userIsAble = (event.target === clickElement)
-    }
-
-    if (userIsAble) {
-      // Focus was moved to a new element by a click: an able user
-      // is active
-      textArea.classList.add("focus")
-      focusElement = clickElement
-      window.clearTimeout(scanTimeout)
-      window.clearTimeout(focusTimeout)
-      resetDots()
-    }
-  }
 
   layoutManager.setKeyLayout(keyboard.initial)
   startScanLoop()

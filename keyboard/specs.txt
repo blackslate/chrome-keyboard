@@ -96,8 +96,10 @@ Objects
 • Input
 • Scanning
 • Layout
-• Keyboard display
-• Bits display
+  • Keyboard display
+  • Bits display
+  • Current input
+  • Full text
 
 *** Same bit pattern for all keys in all layouts ***
 
@@ -108,3 +110,19 @@ After each confirm action, ask the layoutManager if the layout needs to be updat
 • Confirm new layout
 • Revert to earlier layout
 • Lock current layout
+
+Overview
+========
+The purpose of the virtual keyboard is to convert arbitrary on/off signals into meaningful words. To do this, we need:
+
+* Input:
+  a way to define a user action and test whether it has occurred
+* Visual feedback: 
+  - An onscreen keyboard
+  - A bit display
+  - The current character
+  - The text written so far
+* A scanning system
+  - Speed
+  - Order
+
