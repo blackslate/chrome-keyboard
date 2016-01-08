@@ -204,18 +204,67 @@
   , autoCapitalize: true
   }
 
-  var LayoutManager = (function (layouts) {
-    function LayoutManager() {
-      
+  // Shared objects
+  var layout = []
+
+  var LayoutManager = (function () {
+    var keyLUT = []
+    var elementLUT = []
+
+    function LayoutManager(layouts) {   
+      this.layouts = layouts
     }
 
-    LayoutManager.prototype.move = function () {
+    LayoutManager.prototype.setKeyLayout = function (layoutName) {
+      if (layoutName) {
+        layout.length = 0
+        this.layouts[layoutName].forEach(function (item) {
+          layout.push(item)
+        })
+      }
+      if (!layout.length) {
+        return
+      }
+
+      keyLUT.length = 0
+      elementLUT.length = 0
+      var keys
+        , keyObject
+        , name
+        , num
+        , element
+
+      scannedKeys.forEach(function (row, rowIndex) {
+        keys = layout[rowIndex]
+        row.forEach(function (element, keyIndex) {
+          keyObject = keys[keyIndex]
+          name = keyObject.name
+          num = keyObject.num
+          keyLUT[num] = getKeyName(name, true) // may be "#iconName"
+          elementLUT[num] = element
+          element.innerHTML = getKeyName(name, false)
+        })
+      })
+
+      function getKeyName(name, respectHash) {
+        if (name.length > 1 && name.charAt(0) === "#") {
+          if (respectHash) {
+            // Leave name as it is
+          } else {
+            name = icons[name.substring(1)]
+          }
+        } else if (upperCase) {
+          name = name.charAt(0).toUpperCase() + name.slice(1)
+        }
+
+        return name
+      }
     }
 
     return LayoutManager;
   })();
 
-  var layoutManager = new LayoutManager()
+  var layoutManager = new LayoutManager(keyboard.layouts, layout)
   var FOCUS_DELAY = 10
   var userIsAble = false
 
@@ -224,8 +273,7 @@
   var dotArray = document.querySelectorAll(".k-binary span")
       dotArray = [].slice.call(dotArray)
   var scannedKeys = []
-  var keyLUT = []
-  var elementLUT = []
+
   var icons = keyboard.icons
   var bits = keyboard.bits
   var scanDelay = keyboard.delay
@@ -241,8 +289,7 @@
   var upperCase = keyboard.autoCapitalize
   var capsLock = false
 
-  var layout
-    , clickStamp
+  var clickStamp
     , clickElement
     , focusElement
     , scanTimeout
@@ -328,51 +375,8 @@
     })
   })()
 
-  setKeyLayout(keyboard.initial)
+  layoutManager.setKeyLayout(keyboard.initial)
   startScanLoop()
-
-  function setKeyLayout(layoutName) {
-    if (layoutName) {
-      layout = keyboard.layouts[layoutName]
-    }
-    if (!layout) {
-      return
-    }
-
-    keyLUT.length = 0
-    elementLUT.length = 0
-    var keys
-      , keyObject
-      , name
-      , num
-      , element
-
-    scannedKeys.forEach(function (row, rowIndex) {
-      keys = layout[rowIndex]
-      row.forEach(function (element, keyIndex) {
-        keyObject = keys[keyIndex]
-        name = keyObject.name
-        num = keyObject.num
-        keyLUT[num] = getKeyName(name, true) // may be "#iconName"
-        elementLUT[num] = element
-        element.innerHTML = getKeyName(name, false)
-      })
-    })
-  }
-
-  function getKeyName(name, respectHash) {
-    if (name.length > 1 && name.charAt(0) === "#") {
-      if (respectHash) {
-        // Leave name as it is
-      } else {
-        name = icons[name.substring(1)]
-      }
-    } else if (upperCase) {
-      name = name.charAt(0).toUpperCase() + name.slice(1)
-    }
-
-    return name
-  }
 
   function startScanLoop() {
     var dot = dotArray[dotArray.length - 1]
@@ -516,24 +520,6 @@
     })
   }
 
-  function showInput(chosen) {
-    input = keyLUT[binary]
-    specialAction = (input.length > 1 && input.charAt(0) === "#")
-
-    if (specialAction) {
-      prepareSpecialAction()
-    } else {
-      // Remove all special settings
-      preview.className = ""
-      preview.innerHTML = input
-    }
-
-    if (chosen) {
-      var element = elementLUT[binary]
-      element.classList.add("chosen")
-    }
-  }
-
   function actOnInput() {
     if (specialAction) {
       doSpecialAction()
@@ -546,7 +532,7 @@
 
     if (upperCase && !capsLock) {
       upperCase = false
-      setKeyLayout()
+      layoutManager.setKeyLayout()
     }
   }
 
@@ -558,7 +544,7 @@
       case "#punctuation":
       case "#numbers":
       case "#more":
-        setKeyLayout(input.substring(1))
+        layoutManager.setKeyLayout(input.substring(1))
       break
     }
   }
