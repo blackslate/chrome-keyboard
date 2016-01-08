@@ -49,6 +49,55 @@
         , {name: "z", num: 19}
         ]
       ]
+    , punctuation: [
+         // ,^()
+         // .¶[]
+         // !{}«»*
+         // ?-\/&@
+         // :;_"'—
+        [
+          {name: ".", num: 20}
+        , {name: "#upperCase", num: 15}
+        , {name: "(", num:  6}
+        , {name: ")", num: 10}
+        , {name: "#edit", num: 31}
+        , {name: "#space", num: 0}
+        , {name: "#tab", num: 25} // **..*•
+        ]
+      , [
+          {name: ",", num: 16}
+        , {name: "¶", num: 14}
+        , {name: "[", num: 13}
+        , {name: "]", num: 12}
+        , {name: "#numbers", num: 26}
+        , {name: "#punctuation", num: 27}
+        , {name: "#more", num: 28}
+        ]
+      , [
+          {name: "!", num: 17}
+        , {name: "{", num: 29}
+        , {name: "}", num:  7}
+        , {name: "«&nbsp", num:  9}
+        , {name: "&nbsp»", num:  5}
+        , {name: "*", num:  4}
+        ]
+      , [
+          {name: "?", num: 18}
+        , {name: "-", num: 11}
+        , {name: "\\",num: 30}
+        , {name: "/", num:  1}
+        , {name: "&", num:  2}
+        , {name: "@", num:  8}
+        ]
+      , [
+          {name: ";", num: 22}
+        , {name: ":", num: 23}
+        , {name: "_", num: 21}
+        , {name: '"', num:  3}
+        , {name: "'", num: 24}
+        , {name: "—", num: 19}
+        ]
+      ]
     }
   , icons: {
       alphabet: "ABC"
@@ -59,6 +108,7 @@
     , numbers: "#"
     , punctuation: ";"
     , more: "œ"
+    , upperCase: "^"
     }
   , bits: 5
   , initial: "alphabet"
@@ -396,6 +446,10 @@
     switch (input) {
       case "#space":
         textArea.innerHTML += " "
+      break
+      case "#punctuation":
+      case "#numbers":
+        setKeyLayout(input.substring(1))
       break
     }
   }
