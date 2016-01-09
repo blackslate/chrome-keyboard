@@ -584,11 +584,13 @@
 
   var ScanManager = (function () {
     var bits
+    var bitIndex
     var actionRatio
     var maxDelay
     var scanDelay
     var actionDelay
     var touched
+    var confirmed
 
     function ScanManager(settings) {
       bits = settings.bits
@@ -637,7 +639,7 @@
           scanTimeout = window.setTimeout(scanSwitch, actionDelay)
 
         } else {
-          input = view.showInput(true)
+          view.showInput(true)
           scanTimeout = window.setTimeout(checkIfConfirmed, actionDelay)
         }
         
@@ -701,22 +703,22 @@
     return ScanManager
   })()
 
+  // Objects
   var view = new View(settings)
   var inputManager = new InputManager()
   var scanManager = new ScanManager(settings)
 
-  var binary = 0
-  var bitValue = 0
-  var switchValue = 0
-  var maskValue = 0
-  var bitIndex = 0
-  var off = true // no input for this bit
-  var specialAction = false
+  // Shared variables
+  var binary = 0            // layout, dot & scan
+  var bitValue = 0          // layout & scan
+  var maskValue = 0         // layout & scan
+  var switchValue = 0       // dot & scan
+  var off = true            // dot & scan: no input for this bit
+  var specialAction = false // view & scan
 
-  var scanTimeout
-    , pass
-    , confirmed
-    , input
+  var scanTimeout           // input & scan
+    , pass                  // layout, dot & scan
+    , input                 // view & scan
 
   view.setKeyLayout(settings.initial)
   scanManager.startLoop()
