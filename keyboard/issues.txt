@@ -1,0 +1,6 @@
+ISSUES
+
+Check special #actions
+Check why confirmed is not being set
+
+What to do if the alphabet has more than 26 letters and needs upperCase? (Use 64 character scanning)

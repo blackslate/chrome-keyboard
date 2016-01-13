@@ -1,0 +1,6 @@
+Preferences
+===========
+
+increase speed for correct input (= input which does not enter the re-cycle)
+
+skip confirmation

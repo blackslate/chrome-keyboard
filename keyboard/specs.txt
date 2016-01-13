@@ -126,3 +126,44 @@ The purpose of the virtual keyboard is to convert arbitrary on/off signals into 
   - Speed
   - Order
 
+Layout
+======
+(UpperCase)
+Punctuation + uppercase
+Numbers
+More
+layoutLock
+
+prepareSpecialAction
+  -> show action name
+
+doSpecialAction
+  -> append " " | act on TAB | change layout
+
+LayoutManager.prototype.checkNext
+  -> revert to previous layout if not locked
+  -> adopt ABC layout if Punctuation > upperCase (not locked)
+
+When the user selects a #special key, we need to:
+- Check the `locked` flag.
+  - If it is false
+    - if the selected layout corresponds to the current layout
+      -> set locked to true
+    - ELSE (locked is false and layout not reselected)
+      - if layout is Punctuation and key is #upperCase
+        -> set upperCase to true (locked is already false)
+        -> set the ABC layout (to show uppercase letters)
+      -> revert to previous layout, unless current is ABC
+  - ELSE (locked is true)
+    - if the current layout is Punctuation and
+      - the selected key is #upperCase
+      -> set layout to ABC, with upperCase and capsLock both true
+    - else (locked is true but not Punctuation && #upperCase)
+      -> Do nothing
+  - 
+
+Confirm action
+==============
+The confirm action does one of two things:
+- Enters a character (changes the model = output)
+- Does a special action (affects the view and the controller)

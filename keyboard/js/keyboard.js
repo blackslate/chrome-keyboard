@@ -210,33 +210,300 @@
   var View = (function () {
     var preview = document.querySelector(".k-preview span")
     var textArea = document.querySelector(".k-container textarea")
-    var layoutManager
+    var keyManager
     var dotManager
+    var layoutManager
+
+    var locked = false        // key & layout 
+    var upperCase             // key & layout
+
+
+    /** The KeyManager deals with the (32) keys of the virtual
+     *  keyboard. It allows you to switch between keyboard layouts,
+     *  to highlight and disable keys as they are scanned, and to
+     *  get the current input and its associated <span> element.
+     */
+    var KeyManager = (function () {   
+      var selector = ".k-keyboard p"
+      var scannedKeys = [] // [[<span element>, ...], <row>, ...]
+      var keyLUT = []      // [<num>: <keyName>, ...]
+      var elementLUT = []  // [<num>: <span element>, ...]
+      var layout = []
+      var layouts
+      var icons
+
+      function KeyManager(settings) {   
+        layouts = settings.layouts
+        upperCase = settings.autoCapitalize
+        icons = settings.icons
+
+        // Create an array of arrays of <span> elements, which should
+        // have the same structure as each layout
+        scannedKeys = [].slice.call(document.querySelectorAll(selector))
+        scannedKeys.forEach(function(row, index) {
+          scannedKeys[index] = [].slice.call(row.children)
+        })
+      }
+
+      /**
+       * @param {[type]} layoutName [description]
+       * Sets      layout
+       * Uses scannedKeys to populate:
+       *           keyLUT array with input and #iconName strings
+       *           elementLUT with <span> elements
+       * 
+       * 
+       */
+      KeyManager.prototype.setLayout = function (layoutName) {
+        if (layoutName) {
+          if (layoutName.charAt(0) === "#") {
+            layoutName = layoutName.substring(1)
+          }
+
+          layout = layouts[layoutName]
+        }
+
+        if (!layout.length) {
+          return
+        }
+
+        keyLUT.length = 0
+        elementLUT.length = 0
+        var keys
+          , keyObject
+          , name
+          , num
+          , element
+
+        scannedKeys.forEach(function (row, rowIndex) {
+          keys = layout[rowIndex]
+          row.forEach(function (element, keyIndex) {
+            keyObject = keys[keyIndex]
+            name = keyObject.name
+            num = keyObject.num
+            keyLUT[num] = keyManager.getKeyName(name, true)
+            // may be "#iconName"
+            elementLUT[num] = element
+            element.innerHTML = keyManager.getKeyName(name, false)
+          })
+        })
+      }
+
+      KeyManager.prototype.getKeyName = function (name, respectHash) {
+        if (name.length > 1 && name.charAt(0) === "#") {
+           if (respectHash) {
+            // Leave name as it is
+          } else {
+            name = icons[name.substring(1)]
+          }
+        } else if (upperCase) {
+          name = name.charAt(0).toUpperCase() + name.slice(1)
+        }
+
+        return name
+      }
+
+      /**
+       * Called by View.showInput and View.updateInput
+       * [getInput description]
+       * @return {[type]} [description]
+       */
+      KeyManager.prototype.getInput = function () {
+        return keyLUT[binary] // "A"|"a"|"Qu"|"qu"|";"|"2"|"#special"
+      }
+
+      /**
+       * Called by View.showInput
+       * [getElement description]
+       * @return {[type]} [description]
+       */
+      KeyManager.prototype.getElement = function () {
+        return elementLUT[binary]
+      }
+
+      KeyManager.prototype.scanKeys = function scanKeys() {
+        var keyObject
+          , num
+          , maskedNum
+          , check
+          , className
+
+        scannedKeys.forEach(function (row, rowIndex) {
+          row.forEach(function (element, keyIndex) {
+            keyObject = layout[rowIndex][keyIndex]
+            num = keyObject.num         // e.g. 20 for "a" *.*..
+            maskedNum = num & maskValue // e.g. 16 for "a" at 2nd bit
+            check = (num & bitValue) !== 0 // true if char uses this bit
+
+            if (!pass) {
+              className = firstPassClassName()
+            } else {
+              className = subsequentPassClassName()
+            }
+
+            element.classList.remove("chosen")
+            element.classList.remove("highlight")
+            element.classList.remove("disable")
+            if (className) {
+              element.classList.add(className)
+            }
+          })
+        })
+
+        function firstPassClassName() {
+          if (maskedNum === binary) {
+             if (check) {
+              return "highlight"
+            } else {
+              return undefined
+            }
+          } else {
+            return "disable"
+          }
+        }
+
+        function subsequentPassClassName() {
+          var used
+            , active
+
+          if (bitValue) {
+            used = (binary & bitValue) !== 0
+            active = pass > 1 || maskedNum === (binary & maskValue)
+            if (active) {
+              if (check !== used) {
+                return "highlight"
+              }
+            } else {
+              return "disable"
+            }
+          }
+
+          return undefined
+        }
+      }
+
+      KeyManager.prototype.resetKeys = function resetKeys() {
+        scannedKeys.forEach(function (row, rowIndex) {
+          row.forEach(function (element, keyIndex) {
+            element.classList.remove("chosen")
+            element.classList.remove("highlight")
+            element.classList.remove("disable")
+          })
+        })
+      }
+
+      return KeyManager
+    })()
+
+    var LayoutManager = (function () {
+      var previousLayout
+      var currentLayout
+
+      function LayoutManager (layout) {
+        currentLayout = layout
+        keyManager.setLayout(currentLayout)
+      }
+
+      // 
+      LayoutManager.prototype.checkNext = function checkNext() {
+        if (input === "#upperCase") {
+          console.log("upperCase")
+        } else if (upperCase && !locked) {
+          upperCase = false
+          keyManager.setLayout() // We're already in "alphabet"
+        }
+      }
+    
+      LayoutManager.prototype.method = function method() {
+    
+      }
+    
+      return LayoutManager
+    })()
+
+    var DotManager = (function () {
+      var dotArray
+      var dot
+
+      function DotManager () {
+        dotArray = document.querySelectorAll(".k-binary span")
+        dotArray = [].slice.call(dotArray)
+      }
+    
+      DotManager.prototype.updateDot = function updateDot(bitIndex) {
+        var dot = dotArray[bitIndex - 1]
+
+        if (switchValue > 0) {    
+          dot.classList.remove("off")
+          dot.classList.add("on")
+        } else {
+          dot.classList.remove("on")
+          dot.classList.add("off")
+        }
+      }
+
+      DotManager.prototype.resetDots = function resetDots() {
+        dotArray.forEach(function (dot) {
+          dot.classList.remove("on")
+          dot.classList.remove("off")
+          dot.classList.remove("active")
+        })
+
+        dot = dotArray[dotArray.length - 1]
+        var a = 0
+      }
+
+      DotManager.prototype.setDotClass = function setDotClass(bitIndex){
+        // Show last dot as off if touch not activated on first pass
+        dot.classList.remove("active")
+        if (!pass && !touched) {
+          dot.classList.add("off") // does not affect green "go" dot
+        }
+
+        // Indicate that the next dot is active
+        dot = dotArray[bitIndex]
+        if (dot) {
+          dot.classList.add("active")
+        }
+      }
+    
+      return DotManager
+    })()
 
     function View(settings) {
-      layoutManager = new LayoutManager(settings)
+      keyManager = new KeyManager(settings)
       dotManager = new DotManager()
+      layoutManager = new LayoutManager(settings.initial)
     }
 
     View.prototype.reset = function reset() {
-      layoutManager.resetKeys()
+      keyManager.resetKeys()
       dotManager.resetDots()
     }
 
     View.prototype.setKeyLayout = function setKeyLayout(layoutName) {
-      layoutManager.setKeyLayout(layoutName)
+      keyManager.setLayout(layoutName)
+    }
+
+    /**
+     * Sent by doSpecialAction() when the confirmed key is Punctuation
+     * > #upperCase.
+     */
+    View.prototype.setUpperCase = function setUpperCase() {
+      upperCase = !upperCase
+      keyManager.setLayout("alphabet") // <HARD-CODED>
     }
 
     View.prototype.scanKeys = function scanKeys() {
-      layoutManager.scanKeys()
+      keyManager.scanKeys()
     }
 
     View.prototype.getInput = function getInput() {
-      return layoutManager.getInput()
+      return keyManager.getInput()
     }
 
     View.prototype.getElement = function getElement() {
-      return layoutManager.getElement()
+      return keyManager.getElement()
     }
 
     View.prototype.updateDot = function updateDot(bitIndex) {
@@ -274,7 +541,7 @@
           case "#space":
           default:
             preview.classList.add("special")
-            preview.innerHTML = input.substring(1)
+            preview.innerHTML = keyManager.getKeyName(input)
           break
         }
       }
@@ -298,223 +565,6 @@
     }
 
     return View
-  })()
-
-  /** The LayoutManager deals with the (32) keys of the virtual
-   *  keyboard. It allows you to switch between keyboard layouts,
-   *  to highlight and disable keys as they are scanned, and to
-   *  get the current input and its associated <span> element.
-   */
-  var LayoutManager = (function () {   
-    var selector = ".k-keyboard p"
-    var keyLUT = []      // [<num>: <keyName>, ...]
-    var elementLUT = []  // [<num>: <span element>, ...]
-    var scannedKeys = [] // [[<span element>, ...], <row>, ...]
-    var layout = []
-    var capsLock = false
-    var upperCase
-    var layouts
-    var icons
-
-    function LayoutManager(settings) {   
-      layouts = settings.layouts
-      upperCase = settings.autoCapitalize
-      icons = settings.icons
-
-      // Create an array of arrays of <span> elements, which should
-      // have the same structure as each layout
-      scannedKeys = [].slice.call(document.querySelectorAll(selector))
-      scannedKeys.forEach(function(row, index) {
-        scannedKeys[index] = [].slice.call(row.children)
-      })
-    }
-
-    LayoutManager.prototype.setKeyLayout = function (layoutName) {
-      if (layoutName) {
-        if (layoutName.charAt(0) === "#") {
-          layoutName = layoutName.substring(1)
-        }
-
-        layout = layouts[layoutName]
-      }
-
-      if (!layout.length) {
-        return
-      }
-
-      keyLUT.length = 0
-      elementLUT.length = 0
-      var keys
-        , keyObject
-        , name
-        , num
-        , element
-
-      scannedKeys.forEach(function (row, rowIndex) {
-        keys = layout[rowIndex]
-        row.forEach(function (element, keyIndex) {
-          keyObject = keys[keyIndex]
-          name = keyObject.name
-          num = keyObject.num
-          keyLUT[num] = getKeyName(name, true) // may be "#iconName"
-          elementLUT[num] = element
-          element.innerHTML = getKeyName(name, false)
-        })
-      })
-
-      function getKeyName(name, respectHash) {
-        if (name.length > 1 && name.charAt(0) === "#") {
-          name = icons[name.substring(1)]
-          if (respectHash) {
-            // Leave name as it is
-            name = "#" + name
-          } //else {
-          //   name = "#" + icons[name.substring(1)]
-          // }
-        } else if (upperCase) {
-          name = name.charAt(0).toUpperCase() + name.slice(1)
-        }
-
-        return name
-      }
-    }
-
-    LayoutManager.prototype.getInput = function () {
-      return keyLUT[binary]
-    }
-
-    LayoutManager.prototype.getElement = function () {
-      return elementLUT[binary]
-    }
-
-    LayoutManager.prototype.scanKeys = function scanKeys() {
-      var keyObject
-        , num
-        , maskedNum
-        , check
-        , className
-
-      scannedKeys.forEach(function (row, rowIndex) {
-        row.forEach(function (element, keyIndex) {
-          keyObject = layout[rowIndex][keyIndex]
-          num = keyObject.num         // e.g. 20 for "a" *.*..
-          maskedNum = num & maskValue // e.g. 16 for "a" at 2nd bit
-          check = (num & bitValue) !== 0 // true if char uses this bit
-
-          if (!pass) {
-            className = firstPassClassName()
-          } else {
-            className = subsequentPassClassName()
-          }
-
-          element.classList.remove("chosen")
-          element.classList.remove("highlight")
-          element.classList.remove("disable")
-          if (className) {
-            element.classList.add(className)
-          }
-        })
-      })
-
-      function firstPassClassName() {
-        if (maskedNum === binary) {
-           if (check) {
-            return "highlight"
-          } else {
-            return undefined
-          }
-        } else {
-          return "disable"
-        }
-      }
-
-      function subsequentPassClassName() {
-        var used
-          , active
-
-        if (bitValue) {
-          used = (binary & bitValue) !== 0
-          active = pass > 1 || maskedNum === (binary & maskValue)
-          if (active) {
-            if (check !== used) {
-              return "highlight"
-            }
-          } else {
-            return "disable"
-          }
-        }
-
-        return undefined
-      }
-    }
-
-    LayoutManager.prototype.resetKeys = function resetKeys() {
-      scannedKeys.forEach(function (row, rowIndex) {
-        row.forEach(function (element, keyIndex) {
-          element.classList.remove("chosen")
-          element.classList.remove("highlight")
-          element.classList.remove("disable")
-        })
-      })
-    }
-
-    LayoutManager.prototype.checkNext = function checkNext() {
-      if (upperCase && !capsLock) {
-        upperCase = false
-        this.setKeyLayout()
-      }
-    }
-
-    return LayoutManager
-  })()
-
-  var DotManager = (function () {
-    var dotArray
-    var dot
-
-    function DotManager () {
-      dotArray = document.querySelectorAll(".k-binary span")
-      dotArray = [].slice.call(dotArray)
-    }
-  
-    DotManager.prototype.updateDot = function updateDot(bitIndex) {
-      var dot = dotArray[bitIndex - 1]
-
-      if (switchValue > 0) {    
-        dot.classList.remove("off")
-        dot.classList.add("on")
-      } else {
-        dot.classList.remove("on")
-        dot.classList.add("off")
-      }
-    }
-
-    DotManager.prototype.resetDots = function resetDots() {
-      dotArray.forEach(function (dot) {
-        dot.classList.remove("on")
-        dot.classList.remove("off")
-        dot.classList.remove("active")
-      })
-
-      dot = dotArray[dotArray.length - 1]
-      var a = 0
-    }
-
-    DotManager.prototype.setDotClass = function setDotClass(bitIndex){
-      // Show last dot as off if touch not activated on first pass
-      dot.classList.remove("active")
-      if (!pass && off) {
-        dot.classList.add("off") // does not affect green "go" dot
-      }
-
-      // Indicate that the next dot is active
-      dot = dotArray[bitIndex]
-      if (dot) {
-        dot.classList.add("active")
-      }
-    }
-  
-    return DotManager
   })()
 
   var InputManager = (function () {
@@ -629,7 +679,6 @@
         // If binary contains bitValue, switchValue should be negative
         switchValue = (binary & bitValue) ? -bitValue : bitValue
         bitIndex += 1
-        off = true
         touched = false
 
         view.scanKeys()
@@ -645,9 +694,11 @@
         
         function checkIfConfirmed() {
           if (confirmed) {
+            // Start a new input loop
             view.reset()
             scanManager.startLoop()
           } else {
+            // Allow the user to correct the unconfirmed input
             actionDelay = Math.min(actionDelay * actionRatio, maxDelay)
             pass += 1
             initializeLoop()     
@@ -656,6 +707,10 @@
       }
     }
 
+    /**
+     * Sent by treatKeyDown()
+     * @return {[type]} [description]
+     */
     ScanManager.prototype.toggleBit = function toggleBit() {
       if (touched) {
         return
@@ -671,8 +726,6 @@
         view.updateDot(bitIndex)
       }
 
-      off = false
-
       function actOnInput() {
         if (specialAction) {
           doSpecialAction()
@@ -680,13 +733,13 @@
           view.updateInput()
         }
 
-        input = ""
+        view.checkNextLayout() // to release uppercase
         confirmed = true
-
-        view.checkNextLayout()
+        input = ""
       }
 
       function doSpecialAction() {
+        console.log(specialAction, input)
         switch (input) {
           case "#space":
             view.updateInput(" ")
@@ -696,6 +749,9 @@
           case "#more":
             view.setKeyLayout(input)
           break
+          case "#upperCase":
+            view.setUpperCase()
+          break
         }
       }
     }
@@ -703,23 +759,24 @@
     return ScanManager
   })()
 
+  // Shared variables
+  var binary = 0            // key, dot & scan
+  var bitValue = 0          // key & scan
+  var maskValue = 0         // key & scan
+  var switchValue = 0       // dot & scan
+  var specialAction = false // view & scan
+  var scannedKeys = []      // layout & scan
+
+  var scanTimeout           // input & scan
+    , pass                  // key, dot & scan
+    , input                 // view & scan
+    , touched = false       // dot & scan: no input for this bit
+
   // Objects
   var view = new View(settings)
   var inputManager = new InputManager()
   var scanManager = new ScanManager(settings)
 
-  // Shared variables
-  var binary = 0            // layout, dot & scan
-  var bitValue = 0          // layout & scan
-  var maskValue = 0         // layout & scan
-  var switchValue = 0       // dot & scan
-  var off = true            // dot & scan: no input for this bit
-  var specialAction = false // view & scan
-
-  var scanTimeout           // input & scan
-    , pass                  // layout, dot & scan
-    , input                 // view & scan
-
-  view.setKeyLayout(settings.initial)
+  // One command to start everything working
   scanManager.startLoop()
 })(window, document)

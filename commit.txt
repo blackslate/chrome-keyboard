@@ -1,7 +1,1 @@
-Add number and more layouts, plus stub LayoutManager
-
-- fixed able/disable switch on click
-- blue border for modifier cells + TAB + SPACE
-- red and green border used for lock and flip
-- 123, .,?! and éèêë used for other layouts
-- ^ (upperCase) changed to Aa
+Swap LayoutManager->KeyManager, add LayoutManager
